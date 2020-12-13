@@ -8,19 +8,22 @@
 import numpy as np
 import cv2 as cv
 import win32gui
-import time
 from PIL import ImageGrab, Image
 from pynput.keyboard import Key, Controller
-import threading
 
 nome_janela = 'mozilla firefox'
 
 x0=275
-x1=650
+x1=600
 
 y0=470
 y1=520
 
+b1 = True
+b2 = True
+b3 = True
+b4 = True
+b5 = True
 toplist, winlist = [], []
 
 def enum_cb(hwnd, results):
@@ -29,10 +32,12 @@ win32gui.EnumWindows(enum_cb, toplist)
 
 window = [(hwnd, title) for hwnd, title in winlist if nome_janela in title.lower()]
 
-def key_press(button):
-    keyboard.press(button)
-    time.sleep(0.08)
-    keyboard.release(button)
+def key_press(button, press):
+    if (press):
+        keyboard.press(button)
+    else:
+        keyboard.release(button)
+
 try:
     window = window[0]
     hwnd = window[0]
@@ -50,34 +55,38 @@ while True:
     screenshot_game = np.array(screenshot_game)
     screenshot_game = screenshot_game[:, :, ::-1].copy()
     gray = cv.cvtColor(screenshot_game, cv.COLOR_BGR2GRAY)
-    ret, thresh1 = cv.threshold(gray, 180, 255, cv.THRESH_BINARY)
-    binary = thresh1[y0:y1,x0:x1]
+    gray_cutted = gray[y0:y1,x0:x1]
+    ret, thresh1 = cv.threshold(gray_cutted,160, 255, cv.THRESH_BINARY)
 
-    pad1 = binary[0:30,0:50]
-    pad2 = binary[0:30,70:110]
-    pad3 = binary[0:30,130:210]
-    pad4 = binary[0:30,230:280]
-    pad5 = binary[0:30,300:345]
+    pad1 = thresh1[0:30,0:40]
+    pad2 = thresh1[0:30,80:120]
+    pad3 = thresh1[0:30,130:210]
+    pad4 = thresh1[0:30,230:280]
+    pad5 = thresh1[0:30,295:330]
 
     if (cv.countNonZero(pad1)>40):
-        t = threading.Thread(target=key_press, args=("a",))
-        t.start()
+        key_press("a", True)
+    else:
+        key_press("a", False)
     if (cv.countNonZero(pad2)>40):
-        t = threading.Thread(target=key_press, args=("s",))
-        t.start()
-
+        key_press("s", True)
+    else:
+        key_press("s", False)
     if (cv.countNonZero(pad3)>40):
-        t = threading.Thread(target=key_press, args=("j",))
-        t.start()
-
+        key_press("j", True)
+    else:
+        key_press("j", False)
     if (cv.countNonZero(pad4)>40):
-        t = threading.Thread(target=key_press, args=("k",))
-        t.start()
-
+        key_press("k", True)
+    else:
+        key_press("k", False)
     if (cv.countNonZero(pad5)>40):
-        t = threading.Thread(target=key_press, args=("l",))
-        t.start()
-    cv.imshow("output", binary)
+        key_press("l", True)
+    else:
+        key_press("l", False)
+
+    #cv.imshow("output", thresh1)
+    #time.sleep(0.02)
     if cv.waitKey(1) & 0xFF == ord('q'):
         break
 
